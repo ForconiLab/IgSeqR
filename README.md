@@ -1,11 +1,11 @@
 # IgSeqR
 
-IgSeqR is a tool designed for the identification, assembly, and characterization of full-length tumor immunoglobulin transcripts from unselected RNA sequencing data. This tool provides a user-friendly protocol for extracting and accurately determining the full tumor IG transcript sequence, which can be crucial for refining diagnosis, prognosis, and potential therapeutic targeting in B-cell tumors.
+IgSeqR is a tool designed for the identification, assembly, and characterisation of full-length tumor immunoglobulin transcripts from unselected RNA sequencing data. This tool provides a user-friendly protocol for extracting and accurately determining the full tumor IG transcript sequence, which can be crucial for refining diagnosis, prognosis, and potential therapeutic targeting in B-cell tumors.
 
 ## Features
 
 - Identification and assembly of full-length immunoglobulin transcripts.
-- Characterization of tumor immunoglobulin sequences.
+- Characterisation of tumor immunoglobulin sequences.
 - Supports both BAM and FASTQ input formats.
 
 ## Installation

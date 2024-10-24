@@ -88,14 +88,13 @@ else
     print_error "Failed to activate Conda environment. Please check your Conda installation."
     exit 1
 fi
-
+source $(conda info --base)/etc/profile.d/conda.sh
 # Determine the Conda environment directory
-CONDA_ENV_DIR=$(conda info --base)/envs/"$ENV_NAME"
-print_message "Using Conda environment directory: $CONDA_ENV_DIR"
+print_message "Using Conda environment directory: $CONDA_PREFIX"
 
 # Create necessary directories inside the Conda environment
 print_command "Creating necessary directories inside Conda environment"
-mkdir -p "$CONDA_ENV_DIR/bin/data/igseqr"
+mkdir -p "$CONDA_PREFIX/bin/data/igseqr"
 if [ $? -eq 0 ]; then
     echo " DONE"
 else
@@ -106,8 +105,8 @@ fi
 # Copy the igseqr.sh script to the Conda environment bin directory
 if [ -f "$(pwd)/bin/igseqr.sh" ]; then
     print_command "Copying igseqr.sh script to Conda environment bin directory"
-    cp $(pwd)/bin/igseqr.sh "$CONDA_ENV_DIR/bin/"
-    chmod +x "$CONDA_ENV_DIR/bin/igseqr.sh"
+    cp $(pwd)/bin/igseqr.sh "$CONDA_PREFIX/bin/"
+    chmod +x "$CONDA_PREFIX/bin/igseqr.sh"
     if [ $? -eq 0 ]; then
         echo " DONE"
     else
@@ -121,7 +120,7 @@ fi
 
 # Link the igseqr.sh script to the Conda environment bin directory
 print_command "Linking igseqr.sh script to Conda environment bin directory"
-ln -sf "$CONDA_ENV_DIR/bin/igseqr.sh" "$CONDA_ENV_DIR/bin/igseqr"
+ln -sf "$CONDA_PREFIX/bin/igseqr.sh" "$CONDA_PREFIX/bin/igseqr"
 if [ $? -eq 0 ]; then
     echo " DONE"
 else
@@ -132,7 +131,7 @@ fi
 # Copy data files to the Conda environment bin/data directory
 if [ -d "$(pwd)/data" ]; then
     print_command "Copying data files to Conda environment bin/data directory"
-    cp -r $(pwd)/data/* "$CONDA_ENV_DIR/bin/data/igseqr"
+    cp -r $(pwd)/data/* "$CONDA_PREFIX/bin/data/igseqr"
     if [ $? -eq 0 ]; then
         echo " DONE"
     else
@@ -146,7 +145,7 @@ fi
 
 # Check if all necessary directories and files are in place
 print_command "Verifying file structure..."
-if [ -f "$CONDA_ENV_DIR/bin/igseqr" ] && [ -d "$CONDA_ENV_DIR/bin/data/igseqr" ]; then
+if [ -f "$CONDA_PREFIX/bin/igseqr" ] && [ -d "$CONDA_PREFIX/bin/data/igseqr" ]; then
     echo " DONE"
 else
     print_error "Some directories or files are missing. Please check your repository structure."

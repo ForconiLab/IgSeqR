@@ -239,7 +239,7 @@ fi
 ######################################### Read Selection ######################################### 
 ## Select unmapped reads and any reads mapping to IG loci to take forward to trinity
 ## Remove anything not required to assemble IG transcripts
-## The fewer reads, the better as trinity is very slow
+## The fewer reads, the better to speed up trinity
 
 ## Coordinates to keep with buffer:
 ##  - IGH: "14:100000000-110000000"
@@ -293,7 +293,7 @@ samtools fastq -@ $CORES -n -c 6 $HISAT_DIR/keep_reads.bam \
 rm -r $HISAT_DIR
 
 ########################### Trinity genome naive trascript assembly ###########################
-## here we assemble the kept reads into transcripts. 
+## Here we assemble the kept reads into transcripts. 
 ## Option choice is important, please note the following:
 ##   - no digital normalisation
 ##   - no clipping
@@ -393,7 +393,9 @@ if ! $KEEP_INT; then
         rm -r $IG_READS_DIR
     fi
 fi
-  
+
+############################### Extract most abundant transcripts ##############################
+
 for gene in ${IG_CHAIN[@]}
   do
   KALLSTO_DIR=$OUT_DIR/kallisto/$gene

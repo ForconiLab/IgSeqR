@@ -1,0 +1,11 @@
+name: igseqr
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - blast=2.13.0
+  - hisat2=2.2.1
+  - kallisto=0.48.0
+  - samtools=1.16.1
+  - trinity=2.13.2

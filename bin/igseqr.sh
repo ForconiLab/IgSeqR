@@ -261,13 +261,21 @@ IGH="14:105550000-106900000"
 IGK="2:88697000-92240000"
 IGL="22:22005000-23590000"
 
+echo "Filtering for unmapped reads and reads mapping to:" 
+
 # Construct the regions to extract based on CHAIN
 if [[ "$CHAIN" == "HEAVY" ]]; then
     REGIONS="$IGH"
+    echo " - IGH: $IGH" 
 elif [[ "$CHAIN" == "LIGHT" ]]; then
     REGIONS="$IGK $IGL"
+    echo " - IGK: $IGK"
+    echo " - IGL: $IGL"
 elif [[ "$CHAIN" == "BOTH" ]]; then
     REGIONS="$IGH $IGK $IGL"
+    echo " - IGH: $IGH"
+    echo " - IGK: $IGK"
+    echo " - IGL: $IGL"
 fi
 
 samtools merge -f $HISAT_DIR/keep_reads.bam \

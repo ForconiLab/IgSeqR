@@ -158,6 +158,7 @@ if [[ -n $BAM ]]; then
         echo "IG Light Reference:     $IGKL_REF"
     fi
     echo "Cores:                  $CORES"
+    echo "Memory:                 $MEM"
     echo "Output Directory:       $OUT_DIR"
     echo =============================================================================== 
 
@@ -204,6 +205,7 @@ if [[ -n $READ1 && -n $READ2 ]]; then
         echo "IG Light Reference:     $IGKL_REF"
     fi
     echo "Cores:                  $CORES"
+    echo "Memory:                 $MEM"
     echo "Output Directory:       $OUT_DIR"
     echo ===============================================================================
 

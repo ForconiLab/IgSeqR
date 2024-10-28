@@ -149,14 +149,13 @@ if [[ -n $BAM ]]; then
     echo "Sample ID:              $SAMPLE"
     echo "Hisat Reference:        $HISAT_REF"
     echo "IG Chain(s):            ${IG_CHAIN[@]}"
-    if [[ "$CHAIN_TYPE" == "B" ]]; then
-        echo "IG Heavy Reference:     $IGH_REF"
-        echo "IG Light Reference:     $IGKL_REF"
-    elif [[ "$CHAIN_TYPE" == "H" ]]; then
-        echo "IG Heavy Reference:     $IGH_REF"
-    elif [[ "$CHAIN_TYPE" == "L" ]]; then
-        echo "IG Light Reference:     $IGKL_REF"
-    fi
+    for element in "${IG_CHAIN[@]}"; do
+        if [[ "$element" == "IGH" ]]; then
+            echo "IG Heavy Reference:     $IGH_REF"
+        elif [[ "$element" == "IGKL" ]]; then
+            echo "IG Light Reference:     $IGKL_REF"
+        fi
+    done
     echo "Cores:                  $CORES"
     echo "Memory:                 $MEM"
     echo "Output Directory:       $OUT_DIR"
@@ -196,14 +195,13 @@ if [[ -n $READ1 && -n $READ2 ]]; then
     echo "Sample ID:              $SAMPLE"
     echo "Hisat Reference:        $HISAT_REF"
     echo "IG Chain(s):            ${IG_CHAIN[@]}"
-    if [[ "$CHAIN_TYPE" == "BOTH" ]]; then
-        echo "IG Heavy Reference:     $IGH_REF"
-        echo "IG Light Reference:     $IGKL_REF"
-    elif [[ "$CHAIN_TYPE" == "HEAVY" ]]; then
-        echo "IG Heavy Reference:     $IGH_REF"
-    elif [[ "$CHAIN_TYPE" == "LIGHT" ]]; then
-        echo "IG Light Reference:     $IGKL_REF"
-    fi
+    for element in "${IG_CHAIN[@]}"; do
+        if [[ "$element" == "IGH" ]]; then
+            echo "IG Heavy Reference:     $IGH_REF"
+        elif [[ "$element" == "IGKL" ]]; then
+            echo "IG Light Reference:     $IGKL_REF"
+        fi
+    done
     echo "Cores:                  $CORES"
     echo "Memory:                 $MEM"
     echo "Output Directory:       $OUT_DIR"
@@ -241,7 +239,7 @@ fi
 ######################################### Read Selection ######################################### 
 ## Select unmapped reads and any reads mapping to IG loci to take forward to trinity
 ## Remove anything not required to assemble IG transcripts
-## The fewer reads, the better to speed up trinity
+## The fewer reads, the better as trinity is very slow
 
 ## Coordinates to keep with buffer:
 ##  - IGH: "14:100000000-110000000"
@@ -260,29 +258,28 @@ echo ============================== IG Read Filtering ==========================
 IGH="14:105550000-106900000"
 IGK="2:88697000-92240000"
 IGL="22:22005000-23590000"
+REGIONS=""
 
 echo "Filtering for unmapped reads and reads mapping to:" 
 
 # Construct the regions to extract based on CHAIN
-if [[ "$CHAIN" == "HEAVY" ]]; then
-    REGIONS="$IGH"
-    echo " - IGH: $IGH" 
-elif [[ "$CHAIN" == "LIGHT" ]]; then
-    REGIONS="$IGK $IGL"
-    echo " - IGK: $IGK"
-    echo " - IGL: $IGL"
-elif [[ "$CHAIN" == "BOTH" ]]; then
-    REGIONS="$IGH $IGK $IGL"
-    echo " - IGH: $IGH"
-    echo " - IGK: $IGK"
-    echo " - IGL: $IGL"
-fi
+for element in "${IG_CHAIN[@]}"; do
+    if [[ "$element" == "IGH" ]]; then
+        REGIONS="${REGIONS}$IGH "
+        echo " - IGH: $IGH"
+    elif [[ "$element" == "IGKL" ]]; then
+        REGIONS="${REGIONS}$IGK $IGL "
+        echo " - IGK: $IGK"
+        echo " - IGL: $IGL"
+    fi
+done
 
-samtools merge -f $HISAT_DIR/keep_reads.bam \
-<(samtools view -@ $CORES -b -f 4 $HISAT_DIR/hisat2_output.bam) \
-<(samtools view -@ $CORES -b $HISAT_DIR/hisat2_output.bam $REGIONS)
+# extract unmapped reads and reads mapping to specified regions and sort the bam by name for fastq extraction
+samtools merge -f - \
+    <(samtools view -@ $CORES -b -f 4 $HISAT_DIR/hisat2_output.bam) \
+    <(samtools view -@ $CORES -b $HISAT_DIR/hisat2_output.bam $REGIONS) | \
+samtools sort -n -@$CORES -o $HISAT_DIR/keep_reads.bam
 
-samtools sort -n -@$CORES $HISAT_DIR/keep_reads.bam -o $HISAT_DIR/keep_reads.bam
 
 #################################### Convert Back into FASTQ ################################### 
 ## Convert filtered reads back into FASTQ for running through Trinity
@@ -300,10 +297,14 @@ samtools fastq -@ $CORES -n -c 6 $HISAT_DIR/keep_reads.bam \
 -0 /dev/null -s /dev/null
 
 ###################################### Clean HISAT2 Files #####################################
-rm -r $HISAT_DIR
+if ! $KEEP_INT; then
+    if [[ -e "$HISAT_DIR" ]]; then
+        rm -r $HISAT_DIR
+    fi
+fi
 
 ########################### Trinity genome naive trascript assembly ###########################
-## Here we assemble the kept reads into transcripts. 
+## here we assemble the kept reads into transcripts. 
 ## Option choice is important, please note the following:
 ##   - no digital normalisation
 ##   - no clipping
@@ -403,25 +404,81 @@ if ! $KEEP_INT; then
         rm -r $IG_READS_DIR
     fi
 fi
+  
+#for gene in "${IG_CHAIN[@]}"
+#do
+#  KALLSTO_DIR=$OUT_DIR/kallisto/$gene
+#  if [ -d "$KALLSTO_DIR" ]; then
+#    tail -n +2 "$KALLSTO_DIR/abundance.tsv" | sort -t $'\t' -k5,5nr | head -5 | cut -f1 | xargs -I {} samtools faidx "$OUT_DIR/${SAMPLE}_${gene}_transcripts.fasta" {} > "$OUT_DIR/${SAMPLE}_${gene}_TPM_filtered.fasta"
+#    mv "$KALLSTO_DIR/abundance.tsv" "$OUT_DIR/${SAMPLE}_${gene}_abundance.tsv"
+#    echo
+#  else
+#    echo "ERROR: The directory '$KALLSTO_DIR' does not exist."
+#    exit 1
+#  fi
+#done
+echo
+date
+echo ========================== Processing IgSeqR Outputs ==========================
 
-############################### Extract most abundant transcripts ##############################
-
-for gene in ${IG_CHAIN[@]}
-  do
+for gene in "${IG_CHAIN[@]}"
+do
   KALLSTO_DIR=$OUT_DIR/kallisto/$gene
-    if [ -d $KALLSTO_DIR]; then
-      tail -n +2 $KALLSTO_DIR/abundance.tsv | sort -t $'\t' -k5,5nr | head -5 | cut -f1 | xargs -n 1 samtools faidx $OUT_DIR/"$SAMPLE"_"$gene"_transcripts.fasta > $OUT_DIR/"$SAMPLE"_"$gene"_TPM_filtered.fasta
-      mv $KALLSTO_DIR/abundance.tsv $OUT_DIR/"$SAMPLE"_"$gene"_abundance.tsv
-      echo
-    else
-      echo "ERROR: The directory '$KALLSTO_DIR' does not exist."
-      exit 1
+  if [ -d "$KALLSTO_DIR" ]; then
+    echo "Processing gene: $gene ..."
+    
+    # Define the FASTA file
+    fasta_file="$OUT_DIR/${SAMPLE}_${gene}_transcripts.fasta"
+    if [ ! -f "$fasta_file" ]; then
+      echo "ERROR: FASTA file '$fasta_file' not found."
+      continue
     fi
-  done
+    
+    # Collect all gene transcripts and merge their abundances into a single file
+    report_file="$OUT_DIR/${SAMPLE}_${gene}_report.tsv"
+    echo -e "sample_id\ttranscript_id\tlength\teff_length\test_counts\tTPM\tsequence" > "$report_file"
+    echo " - Generating IgSeqR report and FASTA files"
+    
+    # Extract sequences for all transcripts and merge with abundance data
+    if [ -f "$KALLSTO_DIR/abundance.tsv" ]; then
+      while IFS=$'\t' read -r transcript_id length eff_length est_counts TPM; do
+        sequence=$(samtools faidx "$fasta_file" "$transcript_id" | grep -v "^>" | tr -d '\n')
+        echo -e "$SAMPLE\t$transcript_id\t$length\t$eff_length\t$est_counts\t$TPM\t$sequence" >> "$report_file"
+      done < <(tail -n +2 "$KALLSTO_DIR/abundance.tsv")
+    else
+      echo "ERROR: Abundance file '$KALLSTO_DIR/abundance.tsv' not found."
+      continue
+    fi
+    
+    # Create a new FASTA file using the report
+    modified_fasta="$OUT_DIR/${SAMPLE}_${gene}_transcripts.fasta"
+    > "$modified_fasta"
+    while IFS=$'\t' read -r sample_id transcript_id length eff_length est_counts TPM sequence; do
+      header=">${sample_id}|${transcript_id}"
+      echo -e "$header\n$sequence" >> "$modified_fasta"
+    done < <(tail -n +2 "$report_file")
+    
+    # Filter for the top 5 most abundant transcripts by TPM
+    dominant_report_file="$OUT_DIR/${SAMPLE}_${gene}_dominant_report.tsv"
+    echo -e "sample_id\ttranscript_id\tlength\teff_length\test_counts\tTPM\tsequence" > "$dominant_report_file"
+    echo " - Generating dominant IgSeqR report and FASTA from top 5 transcripts by TPM"
+    tail -n +2 "$report_file" | sort -t $'\t' -k6,6nr | head -5 >> "$dominant_report_file"
+    
+    # Create a new FASTA file using the dominant report
+    tpm_filtered_fasta="$OUT_DIR/${SAMPLE}_${gene}_TPM_filtered.fasta"
+    > "$tpm_filtered_fasta"
+    while IFS=$'\t' read -r sample_id transcript_id length eff_length est_counts TPM sequence; do
+      header=">${sample_id}|${transcript_id}"
+      echo -e "$header\n$sequence" >> "$tpm_filtered_fasta"
+    done < <(tail -n +2 "$dominant_report_file")
+    
+  else
+    echo "ERROR: The directory '$KALLSTO_DIR' does not exist."
+    exit 1
+  fi
+done
 
 ###################################### Clean Kallisto Files #####################################
-
-rm -r $OUT_DIR/kallisto/
 
 if ! $KEEP_INT; then
     if [[ -e "$OUT_DIR/kallisto/" ]]; then
@@ -429,6 +486,7 @@ if ! $KEEP_INT; then
     fi
 fi
 
+echo 
 echo ==============================================================================
 echo IgSeqR COMPLETE
 echo ==============================================================================

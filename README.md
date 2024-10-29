@@ -52,6 +52,7 @@ The script accepts the following command line arguments:
 - `--out, -o` : Output directory (default: ./igseqr)
 - `--sample, -s` : Sample name (default: igseqr)
 - `--chain, -c` : Chain type Heavy [H], Light [L], Both [B] (default)
+- `--keep_int` : Keep intermediate files
 - `--help` : Display help message
 
 ### Example Command

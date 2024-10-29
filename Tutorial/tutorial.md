@@ -9,92 +9,94 @@ In this tutorial, you will learn how to:
 2. Download necessary data files from ArrayExpress/BioStudies.
 3. Run the IgSeqR pipeline to analyse immunoglobulin sequences.
 
-Certainly! Here's the updated tutorial with an added note explaining why Miniconda is recommended:
-
----
-
 ## Prerequisites
 
 Before you begin, ensure you have access to a Linux-based terminal or command line interface. This is essential for running the commands and scripts provided in this tutorial. If you are using a different operating system, consider using a virtual machine or a Docker container with a Linux environment.
 
 **Note:** The setup and use of virtual machines or Docker containers are beyond the scope of this tutorial. For more information, you can refer to the following resources:
 
-- Virtual Machines
-- Docker
+- [Virtual Machines](https://www.freecodecamp.org/news/what-is-a-virtual-machine-and-how-to-setup-a-vm-on-windows-linux-and-mac/)
+- [Docker](https://docker-curriculum.com/)
 
 You will also need:
 - An internet connection
 - `wget`, `git`, and `conda` installed on your system:
+- IgSeqR tool and conda envrionment installed
 
-    - Ensure you have `sudo` privileges to install these packages, if you do not please contact your system administrator for assistance with installing these packages
+### Installing tools:
+
+- Ensure you have `sudo` privileges to install these packages, if you do not please contact your system administrator for assistance with installing these packages
     
-    1. Update your package list:
+1. Update your package list:
+    ```bash
+    sudo apt-get update
+    ```
+
+2. `wget`:
+    
+    wget is generally pre-installed on most Linux distributions. 
+    
+    Check wget installed :
+    ```bash
+    wget --version
+    ```
+
+    If not, install wget:
+    ```bash
+    sudo apt-get install wget
+    ```
+3. `git`:
+    
+    Check if git is installed:
+    ```bash
+    git --version
+    ```
+
+    If not, install git:
+    ```bash
+    sudo apt-get install git
+    ```
+
+4. `conda`:
+
+    Check if conda is installed:
+    ```bash
+    conda --version
+    ```
+
+    If not:
+
+    1. Download the and install the latest version of Miniconda:
         ```bash
-        sudo apt-get update
+        mkdir -p ~/miniconda3
+        wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+        bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+        rm ~/miniconda3/miniconda.sh
+        ```
+    2. Follow the prompts to complete the installation.
+
+    3. Restart terminal or refresh it by running: 
+        ```bash
+        source ~/miniconda3/bin/activate
+        ```
+    4. Initialize conda:
+        ```bash
+        conda init --all
         ```
 
-    2. `wget`:
-        
-        wget is generally pre-installed on most Linux distributions. You can check if thos installed by running:
-        ```bash
-        wget --version
-        ```
-
-        If wget needs to be installed this can be done using:
-        ```bash
-        sudo apt-get install wget
-        ```
-    3. `git`:
-        
-        You can check if git is installed by running:
-        ```bash
-        git --version
-        ```
-
-        If git needs to be installed this can be done using:
-        ```bash
-        sudo apt-get install git
-        ```
-
-    4. `conda`:
-
-        You can check if conda is installed by running:
-        ```bash
-        conda --version
-        ```
-
-        If conda needs to be installed this can be done using:
-
-        1. Download the and install the latest version of Miniconda:
-            ```bash
-            mkdir -p ~/miniconda3
-            wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
-            bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
-            rm ~/miniconda3/miniconda.sh
-            ```
-        2. Follow the prompts to complete the installation.
-
-        3. Restart terminal or refresh it by running: 
-            ```bash
-            source ~/miniconda3/bin/activate
-            ```
-        4. Initialize conda:
-            ```bash
-            conda init --all
-            ```
-
-        **Note:** Miniconda is recommended for the following reasons:
-        - **Lightweight Installation**: Miniconda is a minimal installer for conda, making it a lighter and faster installation compared to Anaconda.
-        - **Flexibility**: With Miniconda, you can install only the packages you need, keeping your environment clean and manageable.
-        - **Ease of Use**: Miniconda provides the same powerful package and environment management features as Anaconda.
-        - **Compatibility**: Miniconda works well on various operating systems, including Linux, macOS, and Windows.
+    **Note:** Miniconda is recommended for the following reasons:
+    - **Lightweight Installation**: Miniconda is a minimal installer for conda, making it a lighter and faster installation compared to Anaconda.
+    - **Flexibility**: With Miniconda, you can install only the packages you need, keeping your environment clean and manageable.
+    - **Ease of Use**: Miniconda provides the same powerful package and environment management features as Anaconda.
+    - **Compatibility**: Miniconda works well on various operating systems, including Linux, macOS, and Windows.
 
 If you encounter any issues, check the official documentation for each tool:
 - [wget Documentation](https://www.gnu.org/software/wget/manual/wget.html)
 - [git Documentation](https://git-scm.com/downloads/linux)
 - [conda Documentation](https://docs.anaconda.com/miniconda/#quick-command-line-install)
 
-### Setting Up the IgSeqR Environment
+
+### Setup IgSeqR and conda environment: 
 
 Clone the IgSeqR github repository to your environment and run the setup script:
 
@@ -103,14 +105,6 @@ git clone https://github.com/ForconiLab/IgSeqR.git
 cd IgSeqR
 bash ./setup.sh
 ```
-
-The following key tools and their versions are required for IgSeqR to function correctly:
-- `blast=2.13.0`
-- `hisat2=2.2.1`
-- `kallisto=0.48.0`
-- `samtools=1.16.1`
-- `trinity=2.13.2`
-
 The setup script will handle the installation of the Conda environment and necessary dependencies.
 
 ## Step 1: Create a Directory for Analysis
